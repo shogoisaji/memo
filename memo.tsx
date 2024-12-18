@@ -1,193 +1,170 @@
-import React, { useState } from "react";
-import { Box, Typography, Popover, Button } from "@mui/material";
-import { useFormContext, Controller } from "react-hook-form";
+import { useState } from "react";
+import {
+  Select,
+  MenuItem,
+  Popover,
+  Box,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import {
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+} from "lucide-react";
 
-const TimePickerModal = ({ name }) => {
-  const [open, setOpen] = useState(false);
+const DateSelect = () => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedOption, setSelectedOption] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  const { control } = useFormContext();
-
-  const handleOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-    setOpen(true);
+  const handleSelectChange = (event) => {
+    setSelectedOption(event.target.value);
+    if (event.target.value === "date") {
+      setAnchorEl(event.target);
+    } else {
+      setAnchorEl(null);
+      setSelectedDate("");
+    }
   };
 
   const handleClose = () => {
-    setOpen(false);
     setAnchorEl(null);
   };
 
-  // 時間（0-23）の配列
-  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const handleDateClick = (date) => {
+    setSelectedDate(date);
+    handleClose();
+  };
 
-  // 分（0-59）の配列
-  const minutes = Array.from({ length: 60 }, (_, i) => i);
+  const prevMonth = () => {
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
+    );
+  };
 
-  const formatTime = (hour, minute) => {
-    const formattedHour = hour.toString().padStart(2, "0");
-    const formattedMinute = minute.toString().padStart(2, "0");
-    return `${formattedHour}:${formattedMinute}`;
+  const nextMonth = () => {
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1)
+    );
+  };
+
+  const generateCalendarDays = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    const days = [];
+    const startDay = firstDay.getDay();
+
+    // 前月の日付を追加
+    for (let i = 0; i < startDay; i++) {
+      days.push(null);
+    }
+
+    // 当月の日付を追加
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      days.push(new Date(year, month, i));
+    }
+
+    return days;
   };
 
   return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field: { value, onChange } }) => {
-        const selectedHour = value ? parseInt(value.split(":")[0]) : 0;
-        const selectedMinute = value ? parseInt(value.split(":")[1]) : 0;
+    <Box>
+      <Select
+        value={selectedOption}
+        onChange={handleSelectChange}
+        sx={{ minWidth: 200 }}
+      >
+        <MenuItem value="">選択してください</MenuItem>
+        <MenuItem value="date">日付を選択</MenuItem>
+        <MenuItem value="other">その他</MenuItem>
+      </Select>
 
-        return (
-          <Box>
-            <Button
-              onClick={handleOpen}
-              variant="outlined"
-              sx={{
-                width: "100%",
-                justifyContent: "flex-start",
-                textTransform: "none",
-              }}
-            >
-              {value || formatTime(selectedHour, selectedMinute)}
-            </Button>
+      {selectedDate && (
+        <Typography sx={{ mt: 2 }}>
+          選択された日付: {selectedDate.toLocaleDateString()}
+        </Typography>
+      )}
 
-            <Popover
-              open={open}
-              anchorEl={anchorEl}
-              onClose={handleClose}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              sx={{
-                "& .MuiPopover-paper": {
-                  width: 300,
-                  mt: 1,
-                  borderRadius: 2,
-                },
-              }}
-            >
-              <Box
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
+      >
+        <Box sx={{ width: 280, p: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <IconButton onClick={prevMonth} size="small">
+              <ChevronLeftIcon />
+            </IconButton>
+            <Typography>
+              {currentDate.getFullYear()}年 {currentDate.getMonth() + 1}月
+            </Typography>
+            <IconButton onClick={nextMonth} size="small">
+              <ChevronRightIcon />
+            </IconButton>
+          </Box>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, 1fr)",
+              gap: 1,
+            }}
+          >
+            {["日", "月", "火", "水", "木", "金", "土"].map((day) => (
+              <Typography
+                key={day}
                 sx={{
-                  width: "100%",
-                  bgcolor: "background.paper",
-                  boxShadow: 24,
-                  p: 4,
-                  borderRadius: 2,
-                  outline: "none",
+                  textAlign: "center",
+                  fontSize: "0.875rem",
+                  fontWeight: "medium",
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 2,
-                  }}
-                >
-                  <Button onClick={handleClose}>キャンセル</Button>
-                  <Button onClick={handleClose} color="primary">
-                    完了
-                  </Button>
-                </Box>
+                {day}
+              </Typography>
+            ))}
 
-                <Box
-                  sx={{
-                    display: "flex",
-                    height: 300,
-                  }}
-                >
-                  {/* 時間スクロール */}
-                  <Box
-                    sx={{
-                      flex: 1,
-                      overflowY: "auto",
-                      borderRight: 1,
-                      borderColor: "divider",
-                      pr: 1,
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ textAlign: "center", mb: 1 }}
-                    >
-                      時間
-                    </Typography>
-                    {hours.map((hour) => (
-                      <Box
-                        key={hour}
-                        onClick={() => {
-                          const newTime = formatTime(hour, selectedMinute);
-                          onChange(newTime);
-                        }}
-                        sx={{
-                          textAlign: "center",
-                          py: 1,
-                          cursor: "pointer",
-                          bgcolor:
-                            selectedHour === hour
-                              ? "action.selected"
-                              : "transparent",
-                          "&:hover": {
-                            bgcolor: "action.hover",
-                          },
-                        }}
-                      >
-                        {hour.toString().padStart(2, "0")}
-                      </Box>
-                    ))}
-                  </Box>
-
-                  {/* 分スクロール */}
-                  <Box
-                    sx={{
-                      flex: 1,
-                      overflowY: "auto",
-                      pl: 1,
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ textAlign: "center", mb: 1 }}
-                    >
-                      分
-                    </Typography>
-                    {minutes.map((minute) => (
-                      <Box
-                        key={minute}
-                        onClick={() => {
-                          const newTime = formatTime(selectedHour, minute);
-                          onChange(newTime);
-                        }}
-                        sx={{
-                          textAlign: "center",
-                          py: 1,
-                          cursor: "pointer",
-                          bgcolor:
-                            selectedMinute === minute
-                              ? "action.selected"
-                              : "transparent",
-                          "&:hover": {
-                            bgcolor: "action.hover",
-                          },
-                        }}
-                      >
-                        {minute.toString().padStart(2, "0")}
-                      </Box>
-                    ))}
-                  </Box>
-                </Box>
+            {generateCalendarDays().map((date, index) => (
+              <Box
+                key={index}
+                onClick={() => date && handleDateClick(date)}
+                sx={{
+                  textAlign: "center",
+                  p: 1,
+                  cursor: date ? "pointer" : "default",
+                  "&:hover": {
+                    bgcolor: date ? "action.hover" : "transparent",
+                  },
+                  borderRadius: 1,
+                }}
+              >
+                <Typography>{date ? date.getDate() : ""}</Typography>
               </Box>
-            </Popover>
+            ))}
           </Box>
-        );
-      }}
-    />
+        </Box>
+      </Popover>
+    </Box>
   );
 };
 
-export default TimePickerModal;
+export default DateSelect;
