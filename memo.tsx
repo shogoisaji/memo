@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Box, Typography, Modal, Button } from "@mui/material";
+import { Box, Typography, Popover, Button } from "@mui/material";
 
 const TimePickerModal = () => {
   const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const [selectedHour, setSelectedHour] = useState(0);
   const [selectedMinute, setSelectedMinute] = useState(0);
 
@@ -12,8 +13,15 @@ const TimePickerModal = () => {
   // 分（0-59）の配列
   const minutes = Array.from({ length: 60 }, (_, i) => i);
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setAnchorEl(null);
+  };
 
   const formatTime = (hour, minute) => {
     const formattedHour = hour.toString().padStart(2, "0");
@@ -35,18 +43,29 @@ const TimePickerModal = () => {
         {formatTime(selectedHour, selectedMinute)}
       </Button>
 
-      <Modal
+      <Popover
         open={open}
+        anchorEl={anchorEl}
         onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
         sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          "& .MuiPopover-paper": {
+            width: 300,
+            mt: 1,
+            borderRadius: 2,
+          },
         }}
       >
         <Box
           sx={{
-            width: 300,
+            width: "100%",
             bgcolor: "background.paper",
             boxShadow: 24,
             p: 4,
@@ -146,7 +165,7 @@ const TimePickerModal = () => {
             </Box>
           </Box>
         </Box>
-      </Modal>
+      </Popover>
     </Box>
   );
 };
