@@ -190,12 +190,13 @@ const TimePickerModal = ({ name }) => {
   );
 };
 
-export default TimePickerModal;
-
 useEffect(() => {
   if (hoursRef.current && minutesRef.current) {
-    const hourElement = hoursRef.current.children[selectedHour];
-    const minuteElement = minutesRef.current.children[selectedMinute];
+    const hourElements = Array.from(hoursRef.current.children);
+    const minuteElements = Array.from(minutesRef.current.children);
+
+    const hourElement = hourElements[parseInt(selectedHour)];
+    const minuteElement = minuteElements[parseInt(selectedMinute)];
 
     if (hourElement) {
       hoursRef.current.scrollTop =
