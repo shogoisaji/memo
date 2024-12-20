@@ -1,15 +1,28 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
+import { Box, List, ListItem, Popover, Typography } from "@mui/material";
 
 type Props = {
+  onSelect: (value: string) => void;
+  onClose: () => void;
+  textColor?: string;
   initialHour: string;
   initialMinute: string;
-  // 他のProps...
+  popOverProps: {
+    open: boolean;
+    anchorEl: HTMLElement | null;
+    anchorOrigin: { vertical: "bottom"; horizontal: "left" };
+    transformOrigin: { vertical: "top"; horizontal: "left" };
+    sx?: object;
+  };
 };
 
 export default function FormTimePicker({
+  onSelect,
+  onClose,
+  textColor = "black",
   initialHour,
   initialMinute,
-  ...props
+  popOverProps,
 }: Props) {
   const hourRef = useRef<HTMLDivElement | null>(null);
   const minuteRef = useRef<HTMLDivElement | null>(null);
@@ -30,24 +43,62 @@ export default function FormTimePicker({
     }
   }, [initialHour, initialMinute]);
 
+  const handleSelect = (hour: string, minute: string) => {
+    onSelect(`${hour}:${minute}`);
+    onClose();
+  };
+
   return (
-    <div>
-      <div ref={hourRef}>
+    <Popover {...popOverProps}>
+      <Box display="flex" p={2}>
         {/* 時間リスト */}
-        {Array.from({ length: 24 }, (_, i) => (
-          <div key={i} data-hour={String(i).padStart(2, "0")}>
-            {String(i).padStart(2, "0")}
-          </div>
-        ))}
-      </div>
-      <div ref={minuteRef}>
+        <List
+          ref={hourRef}
+          sx={{ maxHeight: 200, overflowY: "auto", width: "50%" }}
+        >
+          {Array.from({ length: 24 }, (_, i) => {
+            const hour = String(i).padStart(2, "0");
+            return (
+              <ListItem
+                key={hour}
+                data-hour={hour}
+                button
+                onClick={() => handleSelect(hour, initialMinute)}
+                sx={{
+                  color: textColor,
+                  justifyContent: "center",
+                }}
+              >
+                <Typography>{hour}</Typography>
+              </ListItem>
+            );
+          })}
+        </List>
+
         {/* 分リスト */}
-        {Array.from({ length: 60 }, (_, i) => (
-          <div key={i} data-minute={String(i).padStart(2, "0")}>
-            {String(i).padStart(2, "0")}
-          </div>
-        ))}
-      </div>
-    </div>
+        <List
+          ref={minuteRef}
+          sx={{ maxHeight: 200, overflowY: "auto", width: "50%" }}
+        >
+          {Array.from({ length: 60 }, (_, i) => {
+            const minute = String(i).padStart(2, "0");
+            return (
+              <ListItem
+                key={minute}
+                data-minute={minute}
+                button
+                onClick={() => handleSelect(initialHour, minute)}
+                sx={{
+                  color: textColor,
+                  justifyContent: "center",
+                }}
+              >
+                <Typography>{minute}</Typography>
+              </ListItem>
+            );
+          })}
+        </List>
+      </Box>
+    </Popover>
   );
 }
