@@ -4,8 +4,22 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { format } from "date-fns";
+import { atom, useAtom } from "jotai";
 
 // ... existing code ...
+
+type VisitTableValue = {
+  visitId: string;
+  applicableBaseDate: Date | null;
+};
+
+type Visits = {
+  visits: ApiU2SubjectsSubjectIdVisitsGetVisit[];
+  isSearch: boolean;
+  baseDate: Date | null;
+};
+
+const visitTableValuesAtom = atom<VisitTableValue[]>([]);
 
 const validationSchema = Yup.object().shape({
   visits: Yup.array().of(
@@ -16,6 +30,7 @@ const validationSchema = Yup.object().shape({
 });
 
 const ExaminationSettingsForm = ({ visits, baseDate }: Visits) => {
+  const [visitTableValues, setVisitTableValues] = useAtom(visitTableValuesAtom);
   const { control, handleSubmit, watch, setValue } =
     useForm<ExaminationSettingsForm>({
       resolver: yupResolver(validationSchema),
@@ -72,15 +87,29 @@ const ExaminationSettingsForm = ({ visits, baseDate }: Visits) => {
   ) => {
     const selectedDate = new Date(e.target.value);
     // 次の visit の選択肢を再計算
-    if (index < fields.length - 1) {
-      const nextVisit = visits[index + 1];
+    const newVisitTableValues = visitTableValues.map((v, i) => {
+      if (i <= index) {
+        return v;
+      }
+      const previousApplyDate =
+        i === 0 ? baseDate : control.getValues(`visits.${i - 1}.applyDate`);
+      return {
+        ...v,
+        applicableBaseDate: previousApplyDate,
+      };
+    });
+    setVisitTableValues(newVisitTableValues);
+    for (let i = index + 1; i < fields.length; i++) {
+      const nextVisit = visits[i];
+      const previousApplyDate =
+        i === 0 ? baseDate : control.getValues(`visits.${i - 1}.applyDate`);
       const nextApplicableDates = calculateApplicableDates(
         nextVisit,
-        index + 1,
-        selectedDate
+        i,
+        previousApplyDate
       );
       // 次の visit の選択肢を更新
-      setValue(`visits.${index + 1}.applyDate`, null);
+      setValue(`visits.${i}.applyDate`, null);
     }
   };
 
