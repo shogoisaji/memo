@@ -92,17 +92,31 @@ const ExaminationSettingsForm = ({ visits, baseDate }: Visits) => {
         return v;
       }
       const previousApplyDate =
-        i === 0 ? baseDate : control.getValues(`visits.${i - 1}.applyDate`);
+        i === 0
+          ? baseDate
+          : fields[i - 1].applyDate
+          ? new Date(fields[i - 1].applyDate)
+          : null;
+      const previousPeriod = i === 0 ? 0 : visits[i - 1].period;
+      const applicableBaseDate = previousApplyDate
+        ? new Date(
+            previousApplyDate.getTime() + previousPeriod * 24 * 60 * 60 * 1000
+          )
+        : null;
       return {
         ...v,
-        applicableBaseDate: previousApplyDate,
+        applicableBaseDate: applicableBaseDate,
       };
     });
     setVisitTableValues(newVisitTableValues);
     for (let i = index + 1; i < fields.length; i++) {
       const nextVisit = visits[i];
       const previousApplyDate =
-        i === 0 ? baseDate : control.getValues(`visits.${i - 1}.applyDate`);
+        i === 0
+          ? baseDate
+          : fields[i - 1].applyDate
+          ? new Date(fields[i - 1].applyDate)
+          : null;
       const nextApplicableDates = calculateApplicableDates(
         nextVisit,
         i,
