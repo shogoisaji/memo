@@ -1,24 +1,22 @@
-import { Box } from "@mui/material";
+import { useState, useEffect } from "react";
 
-function ResponsiveImage({ src, alt }) {
-  return (
-    <Box
-      component="img"
-      src={src}
-      alt={alt}
-      sx={{
-        width: {
-          xs: "0", // 非表示
-          sm: "200px",
-          md: "300px",
-          lg: "400px",
-        },
-        height: "auto",
-        display: {
-          xs: "none",
-          sm: "block",
-        },
-      }}
-    />
-  );
+function useWindowSize() {
+  const [size, setSize] = useState([0, 0]);
+
+  useEffect(() => {
+    function updateSize() {
+      setSize([window.innerWidth, window.innerHeight]);
+    }
+    window.addEventListener("resize", updateSize);
+    updateSize();
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  return size;
+}
+
+// 使用例
+function MyComponent() {
+  const [width, height] = useWindowSize();
+  return <div>画面の高さ: {height}px</div>;
 }
