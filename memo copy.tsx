@@ -1,161 +1,148 @@
-import React, { useState } from "react";
-import {
-  Button,
-  Popover,
-  Paper,
-  Grid,
-  IconButton,
-  Typography,
-  TextField,
-  styled,
-} from "@mui/material";
-import { ArrowBack, ArrowForward, CalendarToday } from "@mui/icons-material";
-
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(2),
-  width: 320,
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  minWidth: 36,
-  padding: theme.spacing(1),
-}));
-
-const CustomDatePicker: React.FC = () => {
-  const [date, setDate] = useState<Date | null>(null);
-  const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
-  const [inputValue, setInputValue] = useState("");
-
-  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleDateSelect = (selectedDate: Date) => {
-    setDate(selectedDate);
-    setInputValue(selectedDate.toLocaleDateString("ja-JP"));
-    handleClose();
-  };
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
-  };
-
-  const open = Boolean(anchorEl);
-
-  const renderCalendar = () => {
-    const currentDate = date || new Date();
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
-
-    const days = [];
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(new Date(year, month, i));
-    }
-
-    return (
-      <Grid container spacing={1}>
-        {["日", "月", "火", "水", "木", "金", "土"].map((day) => (
-          <Grid item xs={1.7} key={day}>
-            <Typography align="center" variant="caption">
-              {day}
-            </Typography>
-          </Grid>
-        ))}
-        {[...Array(firstDayOfMonth)].map((_, index) => (
-          <Grid item xs={1.7} key={`empty-${index}`} />
-        ))}
-        {days.map((day) => (
-          <Grid item xs={1.7} key={day.toISOString()}>
-            <StyledButton
-              onClick={() => handleDateSelect(day)}
-              variant={
-                date?.toDateString() === day.toDateString()
-                  ? "contained"
-                  : "text"
-              }
-              color="primary"
-            >
-              {day.getDate()}
-            </StyledButton>
-          </Grid>
-        ))}
-      </Grid>
-    );
-  };
+export default function FormDatePicker({ name }: Props) {
+  // ... 既存のロジック部分は変更なし ...
 
   return (
-    <div>
+    <Box>
       <TextField
-        value={inputValue}
-        onChange={handleInputChange}
+        name={name}
+        value={formatDateTime(date, "YYYY/MM/DD")}
         onClick={handleClick}
         placeholder="YYYY/MM/DD"
         InputProps={{
-          endAdornment: (
-            <IconButton>
-              <CalendarToday />
-            </IconButton>
-          ),
+          endAdornment: <CalendarMonth sx={{ color: "#a8b3cf" }} />,
+          sx: {
+            backgroundColor: "#1a1a1a",
+            color: "#a8b3cf",
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#2d2d2d",
+            },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#3b3b3b",
+            },
+          },
         }}
+        sx={{ maxWidth: "155px" }}
       />
       <Popover
         open={open}
         anchorEl={anchorEl}
         onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left",
+        PaperProps={{
+          sx: {
+            backgroundColor: "#1a1a1a",
+            border: "1px solid #2d2d2d",
+            borderRadius: "8px",
+          },
         }}
       >
-        <StyledPaper>
-          <Grid
-            container
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ mb: 2 }}
+        <Box
+          sx={{
+            width: 280,
+            p: 2,
+            color: "#a8b3cf",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
           >
-            <IconButton
-              onClick={() =>
-                setDate(
-                  new Date(
-                    date?.getFullYear() || new Date().getFullYear(),
-                    (date?.getMonth() || new Date().getMonth()) - 1,
-                    1
-                  )
-                )
-              }
+            <Button
+              onClick={prevMonth}
+              sx={{
+                minWidth: 32,
+                p: 1,
+                color: "#a8b3cf",
+              }}
             >
-              <ArrowBack />
-            </IconButton>
-            <Typography variant="h6">
-              {date ? `${date.getFullYear()}年${date.getMonth() + 1}月` : ""}
+              <Image
+                src="/images/common/icons/arrow-back.svg"
+                width={8}
+                height={14}
+                alt="back"
+              />
+            </Button>
+            <Typography
+              sx={{
+                fontSize: "1rem",
+                color: "#a8b3cf",
+              }}
+            >
+              {formatDateTime(date, "MMMM YYYY")}
             </Typography>
-            <IconButton
-              onClick={() =>
-                setDate(
-                  new Date(
-                    date?.getFullYear() || new Date().getFullYear(),
-                    (date?.getMonth() || new Date().getMonth()) + 1,
-                    1
-                  )
-                )
-              }
+            <Button
+              onClick={nextMonth}
+              sx={{
+                minWidth: 32,
+                p: 1,
+                color: "#a8b3cf",
+              }}
             >
-              <ArrowForward />
-            </IconButton>
-          </Grid>
-          {renderCalendar()}
-        </StyledPaper>
-      </Popover>
-    </div>
-  );
-};
+              <Image
+                src="/images/common/icons/arrow-forward.svg"
+                width={8}
+                height={14}
+                alt="forward"
+              />
+            </Button>
+          </Box>
 
-export default CustomDatePicker;
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, 1fr)",
+              gap: 0.5,
+            }}
+          >
+            {(locale.lang === "ja" ? DAY_OF_WEEK_JP : DAY_OF_WEEK_EN).map(
+              (day) => (
+                <Typography
+                  key={day}
+                  sx={{
+                    textAlign: "center",
+                    fontSize: "0.75rem",
+                    color: "#6b7280",
+                    py: 1,
+                  }}
+                >
+                  {day}
+                </Typography>
+              )
+            )}
+
+            {generateCalendarDays.map((day, index) => (
+              <Button
+                key={index}
+                disabled={!day}
+                onClick={() => day && handleDateClick(day)}
+                sx={{
+                  minWidth: 32,
+                  height: 32,
+                  p: 0,
+                  borderRadius: "50%",
+                  color: "#a8b3cf",
+                  "&.Mui-selected": {
+                    backgroundColor: "#3b82f6",
+                    color: "#ffffff",
+                  },
+                  "&:hover": {
+                    backgroundColor: "rgba(59, 130, 246, 0.1)",
+                  },
+                  ...(day?.toDateString() === date.toDateString() && {
+                    backgroundColor: "#3b82f6",
+                    color: "#ffffff",
+                  }),
+                }}
+              >
+                {day ? day.getDate() : ""}
+              </Button>
+            ))}
+          </Box>
+        </Box>
+      </Popover>
+    </Box>
+  );
+}
