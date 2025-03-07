@@ -1,29 +1,23 @@
-export const passwordValidation = (value: string): boolean => {
-  // 許可する文字のみで構成されているかチェック
-  const allowedCharsOnly = /^[a-zA-Z0-9!@#$%^&*]+$/.test(value);
-
-  // 許可されていない文字が含まれていればfalseを返す
-  if (!allowedCharsOnly) {
-    return false;
+private void handleTimeoutForFixedOrFree() {
+  Log.d(TAG, "java.聴診時間が不足しています----------------" + isListeningFinished);
+  if (isListeningFinished) {
+      isListeningFinished = false;
+      setDisconnected(true);
+      timerManager.resetTimeoutTimer();
+      audioDataProcessor.reset();
+      return;
   }
 
-  // 以下は基本的な強度チェック
-  const hasLowerCase = /[a-z]/.test(value);
-  const hasUpperCase = /[A-Z]/.test(value);
-  const hasNumber = /\d/.test(value);
-  const hasSymbol = /[!@#$%^&*]/.test(value);
+  long elapsedTimeMillis = timerManager.getElapsedTime(); // ミリ秒単位で取得している場合
+  long delayMillis = elapsedTimeMillis < 1000 ? (1000 - elapsedTimeMillis) : 0;
 
-  // 最低8文字以上
-  const hasMinLength = value.length >= 8;
-
-  // 文字種の要件（例：少なくとも3種類の文字タイプ）
-  const validTypesCount = [
-    hasLowerCase,
-    hasUpperCase,
-    hasNumber,
-    hasSymbol,
-  ].filter(Boolean).length;
-  const hasEnoughTypes = validTypesCount >= 3;
-
-  return allowedCharsOnly && hasMinLength && hasEnoughTypes;
-};
+  if (delayMillis > 0) {
+      new Handler(Looper.getMainLooper()).postDelayed(() -> {
+          reset();
+          eventSender.sendError("聴診時間が不足しています");
+      }, delayMillis);
+  } else {
+      reset();
+      eventSender.sendError("聴診時間が不足しています");
+  }
+}
