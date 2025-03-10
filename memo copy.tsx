@@ -1,28 +1,32 @@
+package jp.co.awi.hdc.SaaS.auscultation;
+
+import android.os.Handler;
+import android.os.Looper;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class ConnectionManager {
+public class ContactTimerManager {
+    private static final int CONNECT_CHECK_TIME = 1000; // タイマーの待機時間（ミリ秒）
     private Timer timer;
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private ContactTimerCallback contactTimerCallback;
 
-    // タイマーをスタートする
+    // コンストラクタでコールバックを受け取る
+    public ContactTimerManager(ContactTimerCallback contactTimerCallback) {
+        this.contactTimerCallback = contactTimerCallback;
+    }
+
+    // タイマーを開始する
     public void start() {
         if (timer != null) {
-            timer.cancel(); // 古いタイマーをキャンセル
+            timer.cancel(); // 既存のタイマーをキャンセル
         }
         timer = new Timer();
-        scheduleTimer();
+        scheduleTimer(); // 新しいタイマーをスケジュール
     }
 
-    // タイマーをリスタートする
-    public void restart() {
-        if (timer != null) {
-            timer.cancel(); // 現在のタイマーをキャンセル
-        }
-        timer = new Timer(); // 新しいタイマーを作成
-        scheduleTimer();
-    }
-
-    // タイマーを削除する
+    // タイマーをリセット（削除）する
     public void reset() {
         if (timer != null) {
             timer.cancel(); // タイマーを停止
@@ -30,37 +34,19 @@ public class ConnectionManager {
         }
     }
 
-    // 1秒後に onDisconnected() を実行するタスクをスケジュール
+    // CONNECT_CHECK_TIME ミリ秒後に onDisconnected() を実行するタスクをスケジュール
     private void scheduleTimer() {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                onDisconnected();
+                // メインスレッドでコールバックを呼び出す
+                handler.post(() -> contactTimerCallback.onDisconnected());
             }
-        }, 1000); // 1秒後に実行
+        }, CONNECT_CHECK_TIME);
     }
 
-    // 接続が切れたときの処理
-    private void onDisconnected() {
-        System.out.println("Disconnected!");
-        // 必要な処理をここに記述
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        ConnectionManager manager = new ConnectionManager();
-
-        System.out.println("Start timer");
-        manager.start();
-
-        Thread.sleep(500); // 0.5秒後にリスタート
-        System.out.println("Restart timer");
-        manager.restart();
-
-        Thread.sleep(1500); // 1.5秒待機して onDisconnected() を確認
-
-        System.out.println("Reset timer");
-        manager.reset(); // タイマーを削除
-
-        Thread.sleep(2000); // 2秒待機しても何も起こらないことを確認
+    // コールバック用のインターフェース
+    public interface ContactTimerCallback {
+        void onDisconnected();
     }
 }
