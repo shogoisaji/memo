@@ -1,23 +1,51 @@
-private void handleTimeoutForFixedOrFree() {
-  Log.d(TAG, "java.聴診時間が不足しています----------------" + isListeningFinished);
-  if (isListeningFinished) {
-      isListeningFinished = false;
-      setDisconnected(true);
-      timerManager.resetTimeoutTimer();
-      audioDataProcessor.reset();
-      return;
-  }
+/**
+ * シンプルな経過時間監視クラス
+ */
+public class TimeWatcher {
+    private long startTime = 0;
+    private boolean running = false;
 
-  long elapsedTimeMillis = timerManager.getElapsedTime(); // ミリ秒単位で取得している場合
-  long delayMillis = elapsedTimeMillis < 1000 ? (1000 - elapsedTimeMillis) : 0;
+    /**
+     * 時間計測を開始します
+     */
+    public void start() {
+        if (!running) {
+            startTime = System.currentTimeMillis();
+            running = true;
+        }
+    }
 
-  if (delayMillis > 0) {
-      new Handler(Looper.getMainLooper()).postDelayed(() -> {
-          reset();
-          eventSender.sendError("聴診時間が不足しています");
-      }, delayMillis);
-  } else {
-      reset();
-      eventSender.sendError("聴診時間が不足しています");
-  }
+    /**
+     * 経過時間をミリ秒単位で取得します
+     * @return 経過時間（ミリ秒）
+     */
+    public long getElapsedTimeMillis() {
+        if (running) {
+            return System.currentTimeMillis() - startTime;
+        }
+        return 0;
+    }
+
+    /**
+     * 経過時間を秒単位で取得します
+     * @return 経過時間（秒）
+     */
+    public long getElapsedTimeSeconds() {
+        return getElapsedTimeMillis() / 1000;
+    }
+
+    /**
+     * 時間計測をリセットします
+     */
+    public void reset() {
+        startTime = System.currentTimeMillis();
+    }
+
+    /**
+     * 時間計測を停止してリセットします
+     */
+    public void resetAndStop() {
+        running = false;
+        startTime = 0;
+    }
 }
