@@ -1,29 +1,15 @@
-public class DataModeManager {
-    private static DataModeManager instance;
+private byte[] prevData = new byte[0]; // 初期化
 
-    private DataModeManager() {}
-
-    public static synchronized DataModeManager getInstance() {
-        if (instance == null) {
-            instance = new DataModeManager();
-        }
-        return instance;
-    }
-
-    // 他のコードはそのまま...
+public void parseResponse(byte[] data) {
+    // 新しい配列を作成して、prevData と data を結合
+    byte[] checkData = new byte[prevData.length + data.length];
+    
+    // prevData を新しい配列にコピー
+    System.arraycopy(prevData, 0, checkData, 0, prevData.length);
+    
+    // data を新しい配列にコピー
+    System.arraycopy(data, 0, checkData, prevData.length, data.length);
+    
+    // 結合したデータを prevData に保存
+    prevData = checkData;
 }
-
-
-
-
-// MainActivity内でシングルトンから取得
-dataModeManager = DataModeManager.getInstance();
-dataModeManager.setOnModeChangeListener(isDataMode -> {
-    System.out.println("setOnModeChangeListener------" + isDataMode);
-    if (isDataMode) {
-        bluetoothThread.bluetoothHandler.sendCommand("SME", "S01");
-        Log.d("MainActivity", "Change Mode -> Data Mode (send S01)");
-    }
-});
-
-// 他クラス内でも同様にシングルトンから取得するので同じインスタンスになる
