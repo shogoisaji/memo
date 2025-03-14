@@ -139,4 +139,35 @@ public class ModeSwitchManager {
 
     // コマンドモードへの変更要求を送信（再試行開始）
     private void changeToCommandModeRequest() {
-        if (onModeChangeListener
+        if (onModeChangeListener != null) {
+            onModeChangeListener.onModeChanged(true);
+            startRetryTimer();
+        } else {
+            Log.d(TAG, "onModeChangeListener is null during command mode request.");
+        }
+    }
+
+    // リトライタイマーの開始と停止
+
+    private void startRetryTimer() {
+        resetRetryTimer();
+        retryCount = 0;
+        handler.postDelayed(retryRunnable, RETRY_DURATION);
+    }
+
+    private void resetRetryTimer() {
+        handler.removeCallbacks(retryRunnable);
+        retryCount = 0;
+    }
+
+    // タイムアウトタイマーの開始と停止
+
+    private void startTimeoutTimer() {
+        resetTimeoutTimer();
+        handler.postDelayed(timeoutRunnable, MAX_TIMEOUT_TIME);
+    }
+
+    private void resetTimeoutTimer() {
+        handler.removeCallbacks(timeoutRunnable);
+    }
+}
